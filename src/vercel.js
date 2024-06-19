@@ -68,6 +68,10 @@ const init = () => {
 			BUILD_ENV.forEach((item) => {
 				commandArguments = commandArguments.concat([ '--build-env', item ])
 			})
+
+			BUILD_ENV.forEach((item) => {
+				commandArguments = commandArguments.concat([ '--env', item ])
+			})
 		}
 
 		core.info('Starting deploy with Vercel CLI')

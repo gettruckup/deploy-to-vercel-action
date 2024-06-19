@@ -112,7 +112,7 @@ const setDynamicVars = () => {
 		context.PR_NUMBER = process.env.PR_NUMBER || undefined
 		context.REF = process.env.REF || 'refs/heads/master'
 		context.BRANCH = process.env.BRANCH || 'master'
-		context.PRODUCTION = process.env.PRODUCTION === 'true' || !context.IS_PR
+		context.PRODUCTION = typeof process.env.PRODUCTION === 'string' ? process.env.PRODUCTION === 'true' : !context.IS_PR
 		context.LOG_URL = process.env.LOG_URL || `https://github.com/${ context.USER }/${ context.REPOSITORY }`
 		context.ACTOR = process.env.ACTOR || context.USER
 		context.IS_FORK = process.env.IS_FORK === 'true' || false
