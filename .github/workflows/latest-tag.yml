@@ -1,7 +1,13 @@
 name: Tag CI
+
 on:
   release:
     types: [published, edited]
+
+permissions:
+  contents: write
+  deployments: write
+
 jobs:
   latest:
     name: Latest
@@ -10,6 +16,6 @@ jobs:
       - name: Update latest tag
         uses: Actions-R-Us/actions-tagger@latest
         env:
-          GITHUB_TOKEN: "${{ secrets.GH_PAT }}"
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         with:
           publish_latest_tag: true

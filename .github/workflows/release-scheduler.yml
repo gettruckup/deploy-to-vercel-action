@@ -1,8 +1,14 @@
 name: Release Scheduler CI
+
 on:
   schedule:
-    - cron: "0 0 * * 1"
+    - cron: '0 0 * * 1'
   workflow_dispatch:
+
+permissions:
+  contents: write
+  deployments: write
+
 jobs:
   releaseScheduler:
     runs-on: ubuntu-latest
@@ -10,4 +16,4 @@ jobs:
       - name: Run release-scheduler
         uses: koj-co/release-scheduler@master
         env:
-          GH_PAT: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
