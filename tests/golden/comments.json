@@ -1,0 +1,25 @@
+{
+  "fork": [
+    {
+      "actor": "contributor",
+      "user": "octo",
+      "body": "\nRefusing to deploy this Pull Request to Vercel because it originates from @contributor's fork.\n\n**@octo** To allow this behaviour set `DEPLOY_PR_FROM_FORK` to true ([more info](https://github.com/BetaHuhn/deploy-to-vercel-action#deploying-a-pr-made-from-a-fork-or-dependabot)).\n"
+    }
+  ],
+  "deployed": [
+    {
+      "sha": "abcdef0123456789",
+      "previewUrl": "https://pr7.app.example.com",
+      "inspectorUrl": "https://vercel.com/octo/repo/dpl1",
+      "logUrl": "https://github.com/octo/repo/actions/runs/99",
+      "body": "\nThis pull request has been deployed to Vercel.\n\n<table>\n<tr>\n<td><strong>Latest commit:</strong></td>\n<td><code>abcdef0</code></td>\n</tr>\n<tr>\n<td><strong>✅ Preview:</strong></td>\n<td><a href='https://pr7.app.example.com'>https://pr7.app.example.com</a></td>\n</tr>\n<tr>\n<td><strong>🔍 Inspect:</strong></td>\n<td><a href='https://vercel.com/octo/repo/dpl1'>https://vercel.com/octo/repo/dpl1</a></td>\n</tr>\n</table>\n\n[View Workflow Logs](https://github.com/octo/repo/actions/runs/99)\n"
+    },
+    {
+      "sha": "abc",
+      "previewUrl": "https://x.vercel.app",
+      "inspectorUrl": "",
+      "logUrl": "https://github.com/octo/repo",
+      "body": "\nThis pull request has been deployed to Vercel.\n\n<table>\n<tr>\n<td><strong>Latest commit:</strong></td>\n<td><code>abc</code></td>\n</tr>\n<tr>\n<td><strong>✅ Preview:</strong></td>\n<td><a href='https://x.vercel.app'>https://x.vercel.app</a></td>\n</tr>\n<tr>\n<td><strong>🔍 Inspect:</strong></td>\n<td><a href=''></a></td>\n</tr>\n</table>\n\n[View Workflow Logs](https://github.com/octo/repo)\n"
+    }
+  ]
+}

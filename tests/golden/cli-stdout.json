@@ -1,0 +1,46 @@
+[
+  {
+    "stdout": "https://proj-abc123.vercel.app\n",
+    "host": "proj-abc123.vercel.app"
+  },
+  {
+    "stdout": "https://proj-abc123-truckup.vercel.app",
+    "host": "proj-abc123-truckup.vercel.app"
+  },
+  {
+    "stdout": "Vercel CLI 22.0.1\nhttps://proj-abc123.vercel.app\n",
+    "host": "proj-abc123.vercel.app"
+  },
+  {
+    "stdout": "🔍  Inspect: https://vercel.com/truckup/proj/9xYz [1s]\n✅  Production: https://proj-abc123.vercel.app [12s]\n",
+    "host": "vercel.com/truckup/proj/9xYz [1s]"
+  },
+  {
+    "stdout": "http://localhost:3000\n",
+    "host": "localhost:3000"
+  },
+  {
+    "stdout": "https://proj.vercel.app\r\nmore",
+    "host": "proj.vercel.app"
+  },
+  {
+    "stdout": "xhttps://a.vercel.app http://b.vercel.app",
+    "host": "a.vercel.app http://b.vercel.app"
+  },
+  {
+    "stdout": "",
+    "error": "TypeError: match returned null"
+  },
+  {
+    "stdout": "no url here",
+    "error": "TypeError: match returned null"
+  },
+  {
+    "stdout": "https://",
+    "error": "Could not parse deploymentUrl"
+  },
+  {
+    "stdout": "  \n https://spaced.vercel.app  \n",
+    "host": "spaced.vercel.app"
+  }
+]
