@@ -191,7 +191,6 @@ pub fn non_empty_str(value: &Option<String>) -> Option<&str> {
 }
 
 #[cfg(test)]
-#[allow(dead_code)] // first used by the Task 4+ tests
 pub(crate) fn test_inputs() -> Inputs {
     Inputs {
         github_token: "gh-token".into(),
