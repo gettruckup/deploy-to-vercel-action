@@ -47,7 +47,7 @@ jobs:
       - name: Install cargo-zigbuild
         run: |
           python3 -m venv "$RUNNER_TEMP/zigbuild"
-          "$RUNNER_TEMP/zigbuild/bin/pip" install cargo-zigbuild ziglang
+          "$RUNNER_TEMP/zigbuild/bin/pip" install cargo-zigbuild==0.23.4 ziglang==0.17.0
           echo "$RUNNER_TEMP/zigbuild/bin" >> "$GITHUB_PATH"
       - name: Build
         run: cargo zigbuild --release --locked --target x86_64-unknown-linux-musl --target aarch64-unknown-linux-musl
@@ -61,3 +61,16 @@ jobs:
           test "$code" -eq 1
           grep -F '::error::Input `GH_PAT,GITHUB_TOKEN` is required but was not provided.' <<<"$out"
           file target/x86_64-unknown-linux-musl/release/deploy-to-vercel | grep -E 'static(ally|-pie) linked'
+      - name: TLS smoke-test the x86_64 musl binary
+        run: |
+          set +e
+          out=$(env -i GITHUB_ACTIONS=true GITHUB_REPOSITORY=octo/repo GITHUB_EVENT_NAME=push \
+            GITHUB_REF=refs/heads/main GITHUB_SHA=0000000000000000000000000000000000000000 \
+            INPUT_GITHUB_TOKEN=invalid-token INPUT_VERCEL_TOKEN=x INPUT_VERCEL_ORG_ID=team_x \
+            INPUT_VERCEL_PROJECT_ID=prj_x INPUT_ATTACH_COMMIT_METADATA=false \
+            target/x86_64-unknown-linux-musl/release/deploy-to-vercel)
+          code=$?
+          set -e
+          echo "$out"
+          test "$code" -eq 1
+          grep -F 'failed with status 401' <<<"$out"

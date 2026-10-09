@@ -10,6 +10,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Build and release
@@ -31,6 +35,7 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::bad version $VERSION"; exit 1; }
+          [ "${VERSION%%.*}" -ge 2 ] || { echo "::error::refusing to release below v2 (would move v${VERSION%%.*})"; exit 1; }
           crate=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
           test "$crate" = "$VERSION" || { echo "::error::Cargo.toml has $crate, not $VERSION"; exit 1; }
           ! git rev-parse -q --verify "refs/tags/v$VERSION" || { echo "::error::tag v$VERSION exists"; exit 1; }
@@ -43,7 +48,7 @@ jobs:
       - name: Install cargo-zigbuild
         run: |
           python3 -m venv "$RUNNER_TEMP/zigbuild"
-          "$RUNNER_TEMP/zigbuild/bin/pip" install cargo-zigbuild ziglang
+          "$RUNNER_TEMP/zigbuild/bin/pip" install cargo-zigbuild==0.23.4 ziglang==0.17.0
           echo "$RUNNER_TEMP/zigbuild/bin" >> "$GITHUB_PATH"
       - name: Build
         run: cargo zigbuild --release --locked --target x86_64-unknown-linux-musl --target aarch64-unknown-linux-musl
