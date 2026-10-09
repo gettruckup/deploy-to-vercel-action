@@ -50,8 +50,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install Vercel CLI
-        run: npm install -g vercel@51.6.1
       - name: Deploy to Vercel Action
         uses: gettruckup/deploy-to-vercel-action@v2
         with:
@@ -61,7 +59,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 ```
 
-The action runs the `vercel` CLI found on `PATH`, so pin the CLI version you want in a step before it.
+The action installs Vercel CLI `48.0.0` itself and caches it between runs. Set `VERCEL_CLI_VERSION` to pin another exact version, or to `false` to use a `vercel` CLI you install yourself.
 
 The `permissions` block is needed on repositories whose default `GITHUB_TOKEN` is read-only: the action creates GitHub deployments (`deployments: write`) and comments on and labels pull requests (`issues: write`, `pull-requests: write`).
 
@@ -103,6 +101,7 @@ Here are all the inputs [deploy-to-vercel-action](https://github.com/BetaHuhn/de
 | `WORKING_DIRECTORY` | Working directory for the Vercel CLI | **No** | N/A |
 | `FORCE` | Used to skip the build cache. | **No** | false
 | `PREBUILT` | Deploy a prebuilt Vercel Project. | **No** | false
+| `VERCEL_CLI_VERSION` | Vercel CLI version the action installs and caches (exact, e.g. `48.0.0`); `false` uses the `vercel` CLI on `PATH` | **No** | `48.0.0` |
 
 ## 📤 Action Outputs
 
@@ -115,6 +114,12 @@ Here are all the inputs [deploy-to-vercel-action](https://github.com/BetaHuhn/de
 | `DEPLOYMENT_INSPECTOR_URL` | The Vercel inspector URL |
 | `DEPLOYMENT_CREATED` | `true` if a Vercel deployment was created |
 | `COMMENT_CREATED` | `true` if a comment was created on the PR |
+
+## 🆕 What changed in v2.1.0
+
+- The action installs the Vercel CLI itself (default `48.0.0`) and caches it with GitHub's cache, so a separate "Install Vercel CLI" step is no longer needed. A cache hit takes a couple of seconds instead of the ~15–20 s an `npm install -g vercel` takes.
+- If your workflow installs a different CLI version, the action now uses its own `48.0.0` instead: set `VERCEL_CLI_VERSION` to your version, or to `false` to keep using the CLI on `PATH`.
+- Only exact versions are accepted (`48.0.0`); `latest` or ranges fail with a clear error.
 
 ## 🔁 What changed in v2
 
@@ -568,12 +573,12 @@ If you have an idea for another use case, [create a discussion](https://github.c
 
 ## 💻 Development
 
-The action is a Rust binary (`src/`) started by a small Node shim (`dist/index.js`).
+The action is a Rust binary (`src/`) started by a small Node launcher (`dist/index.js`). When `VERCEL_CLI_VERSION` is in effect the launcher first loads `dist/cli-install.cjs`, a bundle of `launcher/cli-install.mjs`, to install and cache the Vercel CLI.
 
 - `cargo test` runs unit tests, the CLI tests and the v1/v2 parity harness (needs Node 20+).
-- `node --test 'tests/shim/*.test.js'` tests the shim.
+- `npm ci --prefix launcher` then `node --test 'tests/shim/*.test.js'` tests the launcher; `npm run build --prefix launcher` builds `dist/cli-install.cjs` (git-ignored; release-only).
 - `node tests/golden/generate.js` regenerates the golden vectors from the v1 code (run `npm install --prefix tests/golden --no-save action-input-parser@1.2.38` first).
-- Releases: bump `version` in `Cargo.toml`, merge to `master`, then run the **Release** workflow with that version. It builds the musl binaries, creates a release commit with `dist/bin/`, tags `v<version>` and moves `v2`.
+- Releases: bump `version` in `Cargo.toml`, merge to `master`, then run the **Release** workflow with that version. It builds the musl binaries and `dist/cli-install.cjs`, creates a release commit with them, tags `v<version>` and, unless `move_major_tag` is unchecked, moves `v2`.
 
 ## ❔ About
 
