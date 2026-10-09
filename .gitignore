@@ -68,3 +68,6 @@ typings/
 
 # Release binaries exist only in release commits (see .github/workflows/release.yml)
 /dist/bin/
+
+# Release-only launcher bundle (built by launcher/package.json, see .github/workflows/release.yml)
+/dist/cli-install.cjs
