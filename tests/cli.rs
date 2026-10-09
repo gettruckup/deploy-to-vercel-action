@@ -78,7 +78,10 @@ fn masks_tokens_before_any_other_output() {
     let lines: Vec<&str> = text.lines().collect();
     assert_eq!(lines[0], "::add-mask::gh-secret");
     assert_eq!(lines[1], "::add-mask::vercel-secret");
-    assert_eq!(lines[2], "deploy-to-vercel-action v2.0.0");
+    assert_eq!(
+        lines[2],
+        format!("deploy-to-vercel-action v{}", env!("CARGO_PKG_VERSION"))
+    );
     assert_eq!(
         text.matches("gh-secret").count(),
         1,
