@@ -1,0 +1,5 @@
+name: 'cache-smoke'
+description: 'Test-only: round-trips the Vercel CLI install through the real GitHub cache service'
+runs:
+  using: 'node24'
+  main: 'index.js'
