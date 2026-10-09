@@ -2,3 +2,4 @@
 
 pub mod actions_io;
 pub mod error;
+pub mod inputs;
