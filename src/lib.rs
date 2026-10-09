@@ -2,6 +2,7 @@
 
 pub mod actions_io;
 pub mod aliases;
+pub mod comment;
 pub mod context;
 pub mod error;
 pub mod inputs;
