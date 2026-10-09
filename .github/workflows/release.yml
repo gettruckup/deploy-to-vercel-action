@@ -24,6 +24,8 @@ jobs:
         with:
           ref: master
           fetch-depth: 0
+          # Dependency installs and builds run later in this job; don't leave a write credential in .git/config.
+          persist-credentials: false
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -65,12 +67,14 @@ jobs:
           out=$(env -i PATH=/usr/bin:/bin "$(command -v node)" dist/index.js)
           code=$?
           set -e
-          echo "$out"
+          # Print without letting the runner execute the binary's workflow commands.
+          sed 's/^::/[cmd] ::/' <<<"$out"
           test "$code" -eq 1
           grep -F '::error::Input `GH_PAT,GITHUB_TOKEN` is required but was not provided.' <<<"$out"
       - name: Create release commit and tags
         env:
           VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           major="v${VERSION%%.*}"
           git config user.name 'github-actions[bot]'
@@ -80,8 +84,10 @@ jobs:
           git commit -m "Release v$VERSION"
           git tag "v$VERSION"
           git tag -f "$major"
-          git push origin "v$VERSION"
-          git push -f origin "$major"
+          # Checkout persisted no credential, so authenticate only these two pushes.
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push "$remote" "refs/tags/v$VERSION:refs/tags/v$VERSION"
+          git push "$remote" "+refs/tags/$major:refs/tags/$major"
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
