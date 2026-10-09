@@ -56,6 +56,23 @@ pub struct RawRun {
     pub trace: Trace,
     pub github_order: Vec<String>,
     pub stdout: String,
+    /// (request line, `authorization` header) per GitHub request.
+    pub github_auth: Vec<(String, Option<String>)>,
+    /// (request line, `authorization` header, query pairs) per Vercel REST request.
+    pub vercel_requests: Vec<VercelRequest>,
+}
+
+pub struct VercelRequest {
+    pub line: String,
+    pub authorization: Option<String>,
+    pub query: Vec<(String, String)>,
+}
+
+fn authorization(request: &Request) -> Option<String> {
+    request
+        .headers
+        .get("authorization")
+        .map(|v| v.to_str().unwrap_or_default().to_string())
 }
 
 #[derive(Default)]
@@ -302,7 +319,17 @@ pub async fn run(implementation: Impl, scenario: &Scenario) -> RawRun {
             trace.deploys.push(invocation.args);
         }
     }
+    let mut vercel_requests = Vec::new();
     for request in vercel.received_requests().await.unwrap_or_default() {
+        vercel_requests.push(VercelRequest {
+            line: format!("{} {}", request.method, request.url.path()),
+            authorization: authorization(&request),
+            query: request
+                .url
+                .query_pairs()
+                .map(|(k, v)| (k.into_owned(), v.into_owned()))
+                .collect(),
+        });
         let request_path = request.url.path().to_string();
         if request_path == "/v11/now/deployments/get" {
             let host = request
@@ -320,8 +347,10 @@ pub async fn run(implementation: Impl, scenario: &Scenario) -> RawRun {
         }
     }
     let mut github_order = Vec::new();
+    let mut github_auth = Vec::new();
     for request in github.received_requests().await.unwrap_or_default() {
         let key = format!("{} {}", request.method, request.url.path());
+        github_auth.push((key.clone(), authorization(&request)));
         github_order.push(key.clone());
         trace.github.entry(key).or_default().push(body(&request));
     }
@@ -335,6 +364,8 @@ pub async fn run(implementation: Impl, scenario: &Scenario) -> RawRun {
         trace,
         github_order,
         stdout: String::from_utf8_lossy(&out.stdout).into_owned(),
+        github_auth,
+        vercel_requests,
     }
 }
 
@@ -390,6 +421,54 @@ fn assert_dependency_order(order: &[String]) {
     }
 }
 
+/// Per-request checks on the Rust run: auth headers and the Vercel team parameter (spec §9.2 allows
+/// v1/v2 differences here, so these are asserted directly instead of being part of `Trace`).
+fn assert_auth_and_team(scenario: &Scenario, rust: &RawRun) {
+    let env = |key: &str| {
+        scenario
+            .env
+            .iter()
+            .find(|(k, _)| *k == key)
+            .map(|(_, v)| v.as_str())
+            .unwrap_or_default()
+    };
+    for (line, auth) in &rust.github_auth {
+        assert_eq!(
+            auth.as_deref(),
+            Some("Bearer gh-secret"),
+            "scenario {}: GitHub request `{line}` has wrong authorization",
+            scenario.name
+        );
+    }
+    let scope = env("INPUT_VERCEL_SCOPE");
+    let expected = if scope.is_empty() {
+        ("teamId", env("INPUT_VERCEL_ORG_ID"))
+    } else if scope.starts_with("team_") {
+        ("teamId", scope)
+    } else {
+        ("slug", scope)
+    };
+    for request in &rust.vercel_requests {
+        assert_eq!(
+            request.authorization.as_deref(),
+            Some("Bearer vercel-secret"),
+            "scenario {}: Vercel request `{}` has wrong authorization",
+            scenario.name,
+            request.line
+        );
+        let found = request.query.iter().find(|(k, _)| k == expected.0);
+        assert_eq!(
+            found.map(|(_, v)| v.as_str()),
+            Some(expected.1),
+            "scenario {}: Vercel request `{}` has wrong `{}` (query {:?})",
+            scenario.name,
+            request.line,
+            expected.0,
+            request.query
+        );
+    }
+}
+
 /// Runs both implementations; expects v2 == v1 + common fixes + `adjust` (the scenario's approved deltas).
 pub async fn diff(scenario: &Scenario, adjust: impl FnOnce(&mut Trace)) -> RawRun {
     let legacy = run(Impl::Legacy, scenario).await;
@@ -398,6 +477,7 @@ pub async fn diff(scenario: &Scenario, adjust: impl FnOnce(&mut Trace)) -> RawRu
     apply_common_fixes(&mut expected);
     adjust(&mut expected);
     assert_dependency_order(&rust.github_order);
+    assert_auth_and_team(scenario, &rust);
     assert_eq!(
         rust.trace, expected,
         "scenario {}\n--- legacy stdout ---\n{}\n--- rust stdout ---\n{}",
