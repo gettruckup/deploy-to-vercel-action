@@ -1,0 +1,1048 @@
+[
+  {
+    "name": "defaults",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "input wins over plain env",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "VERCEL_SCOPE": "plain",
+      "INPUT_VERCEL_SCOPE": "input"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": "input",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "plain env fallback",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "VERCEL_SCOPE": "plain"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": "plain",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "empty input falls back to plain env",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_VERCEL_SCOPE": "",
+      "VERCEL_SCOPE": "plain"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": "plain",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "strings are trimmed",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_PR_PREVIEW_DOMAIN": "  pr{PR}.example.com \n"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": "pr{PR}.example.com",
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "whitespace-only string stays empty",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_WORKING_DIRECTORY": "   "
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": "",
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "GH_PAT wins over GITHUB_TOKEN",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GH_PAT": "pat"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "pat",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "GITHUB_TOKEN from plain env",
+    "env": {
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_TOKEN": "plain-token"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "plain-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "missing GitHub token",
+    "env": {
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo"
+    },
+    "err": "Input `GH_PAT,GITHUB_TOKEN` is required but was not provided."
+  },
+  {
+    "name": "missing Vercel token",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo"
+    },
+    "err": "Input `VERCEL_TOKEN` is required but was not provided."
+  },
+  {
+    "name": "missing repository",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1"
+    },
+    "err": "Input `GITHUB_REPOSITORY` is required but was not provided."
+  },
+  {
+    "name": "boolean true",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_FORCE": "true"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": true
+    }
+  },
+  {
+    "name": "boolean True",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_FORCE": "True"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": true
+    }
+  },
+  {
+    "name": "boolean TRUE",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_FORCE": "TRUE"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": true
+    }
+  },
+  {
+    "name": "boolean false",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_FORCE": "false"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "boolean False",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_FORCE": "False"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "boolean FALSE",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_FORCE": "FALSE"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "boolean rejects yes",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_PRODUCTION": "yes"
+    },
+    "err": "boolean input has to be one of `true | True | TRUE | false | False | FALSE`"
+  },
+  {
+    "name": "boolean is not trimmed",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_PREBUILT": "true "
+    },
+    "err": "boolean input has to be one of `true | True | TRUE | false | False | FALSE`"
+  },
+  {
+    "name": "boolean from plain env",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "PRODUCTION": "false"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": false,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "array newline separated",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_ALIAS_DOMAINS": "a.example.com\nb.example.com\n"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": [
+        "a.example.com",
+        "b.example.com"
+      ],
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "array comma separated",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_ALIAS_DOMAINS": "a.example.com, b.example.com"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": [
+        "a.example.com",
+        "b.example.com"
+      ],
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "array mixed separators",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_BUILD_ENV": "A=1,B=2\nC=3"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": [
+        "A=1",
+        "B=2",
+        "C=3"
+      ],
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "array splits values on commas",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_BUILD_ENV": "LIST=a,b"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": [
+        "LIST=a",
+        "b"
+      ],
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "array whitespace-only entry",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_ALIAS_DOMAINS": "a.example.com\n  \nb.example.com"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": [
+        "a.example.com",
+        "",
+        "b.example.com"
+      ],
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "array of only a newline",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_ALIAS_DOMAINS": "\n"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": [],
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "labels disabled",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_PR_LABELS": "false"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": null,
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "labels disabled via plain env",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "PR_LABELS": "false"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": null,
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "labels False is a label",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_PR_LABELS": "False"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "False"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "custom labels",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_PR_LABELS": "deployed,preview"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed",
+        "preview"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "alias domains disabled",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_ALIAS_DOMAINS": "false"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": true,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": [
+        "deployed"
+      ],
+      "ALIAS_DOMAINS": null,
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": null,
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": null,
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": null,
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  },
+  {
+    "name": "consumer preview workflow",
+    "env": {
+      "INPUT_GITHUB_TOKEN": "gh-token",
+      "INPUT_VERCEL_TOKEN": "vercel-token",
+      "INPUT_VERCEL_ORG_ID": "team_org",
+      "INPUT_VERCEL_PROJECT_ID": "prj_1",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "INPUT_PRODUCTION": "false",
+      "INPUT_PR_LABELS": "false",
+      "INPUT_VERCEL_SCOPE": "truckup-591e6e55",
+      "INPUT_ALIAS_DOMAINS": "\n",
+      "INPUT_GITHUB_DEPLOYMENT_ENV": "pr12",
+      "INPUT_BUILD_ENV": "NEXT_PUBLIC_STAGE_NAME=pr12\nNEXT_PUBLIC_API_URL=https://pr12.api.example.com\n"
+    },
+    "ok": {
+      "GITHUB_TOKEN": "gh-token",
+      "VERCEL_TOKEN": "vercel-token",
+      "VERCEL_ORG_ID": "team_org",
+      "VERCEL_PROJECT_ID": "prj_1",
+      "PRODUCTION": false,
+      "GITHUB_DEPLOYMENT": true,
+      "CREATE_COMMENT": true,
+      "DELETE_EXISTING_COMMENT": true,
+      "ATTACH_COMMIT_METADATA": true,
+      "DEPLOY_PR_FROM_FORK": false,
+      "PR_LABELS": null,
+      "ALIAS_DOMAINS": [],
+      "PR_PREVIEW_DOMAIN": null,
+      "VERCEL_SCOPE": "truckup-591e6e55",
+      "GITHUB_REPOSITORY": "octo/repo",
+      "GITHUB_DEPLOYMENT_ENV": "pr12",
+      "TRIM_COMMIT_MESSAGE": false,
+      "WORKING_DIRECTORY": null,
+      "BUILD_ENV": [
+        "NEXT_PUBLIC_STAGE_NAME=pr12",
+        "NEXT_PUBLIC_API_URL=https://pr12.api.example.com"
+      ],
+      "PREBUILT": false,
+      "FORCE": false
+    }
+  }
+]

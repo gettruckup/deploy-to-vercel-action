@@ -1,0 +1,89 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Rust toolchain
+        run: rustup toolchain install
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+      - name: Format
+        run: cargo fmt --check
+      - name: Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
+      - name: Test
+        run: cargo test --locked
+      - name: TLS smoke test
+        run: cargo test --locked --lib -- --ignored tls_smoke
+      - name: Shim tests
+        run: node --test 'tests/shim/*.test.js'
+
+  build:
+    name: Build musl binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Rust toolchain
+        run: rustup toolchain install
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+      - name: Install cargo-zigbuild
+        run: |
+          python3 -m venv "$RUNNER_TEMP/zigbuild"
+          "$RUNNER_TEMP/zigbuild/bin/pip" install cargo-zigbuild==0.23.4 ziglang==0.17.0
+          echo "$RUNNER_TEMP/zigbuild/bin" >> "$GITHUB_PATH"
+      - name: Build
+        run: cargo zigbuild --release --locked --target x86_64-unknown-linux-musl --target aarch64-unknown-linux-musl
+      - name: Smoke-test the x86_64 binary
+        run: |
+          set +e
+          out=$(env -i target/x86_64-unknown-linux-musl/release/deploy-to-vercel)
+          code=$?
+          set -e
+          # Print without letting the runner execute the binary's workflow commands.
+          sed 's/^::/[cmd] ::/' <<<"$out"
+          test "$code" -eq 1
+          grep -F '::error::Input `GH_PAT,GITHUB_TOKEN` is required but was not provided.' <<<"$out"
+          file target/x86_64-unknown-linux-musl/release/deploy-to-vercel | grep -E 'static(ally|-pie) linked'
+      - name: TLS smoke-test the x86_64 musl binary
+        run: |
+          # Give the binary its own file-command files, as a real runner does.
+          smoke_env="$RUNNER_TEMP/smoke-env"
+          smoke_output="$RUNNER_TEMP/smoke-output"
+          : > "$smoke_env"
+          : > "$smoke_output"
+          set +e
+          out=$(env -i GITHUB_ACTIONS=true GITHUB_REPOSITORY=octo/repo GITHUB_EVENT_NAME=push \
+            GITHUB_REF=refs/heads/main GITHUB_SHA=0000000000000000000000000000000000000000 \
+            GITHUB_ENV="$smoke_env" GITHUB_OUTPUT="$smoke_output" \
+            INPUT_GITHUB_TOKEN=invalid-token INPUT_VERCEL_TOKEN=x INPUT_VERCEL_ORG_ID=team_x \
+            INPUT_VERCEL_PROJECT_ID=prj_x INPUT_ATTACH_COMMIT_METADATA=false \
+            target/x86_64-unknown-linux-musl/release/deploy-to-vercel)
+          code=$?
+          set -e
+          # Print without letting the runner execute the binary's workflow commands.
+          sed 's/^::/[cmd] ::/' <<<"$out"
+          test "$code" -eq 1
+          grep -F 'failed with status 401' <<<"$out"
+          grep -q '^VERCEL_ORG_ID<<ghadelimiter_' "$smoke_env"

@@ -2,7 +2,7 @@
 
 # Deploy to Vercel Action
 
-[![Node CI](https://github.com/BetaHuhn/deploy-to-vercel-action/workflows/Node%20CI/badge.svg)](https://github.com/BetaHuhn/deploy-to-vercel-action/actions?query=workflow%3A%22Node+CI%22) [![Release CI](https://github.com/BetaHuhn/deploy-to-vercel-action/workflows/Release%20CI/badge.svg)](https://github.com/BetaHuhn/deploy-to-vercel-action/actions?query=workflow%3A%22Release+CI%22) [![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/BetaHuhn/deploy-to-vercel-action/blob/master/LICENSE) ![David](https://img.shields.io/david/betahuhn/deploy-to-vercel-action)
+[![Rust CI](https://github.com/gettruckup/deploy-to-vercel-action/actions/workflows/rust.yml/badge.svg)](https://github.com/gettruckup/deploy-to-vercel-action/actions/workflows/rust.yml) [![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE)
 
 Deploy your project to Vercel using GitHub Actions. Supports PR previews and GitHub deployments.
 
@@ -42,33 +42,40 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    permissions:
+      contents: read
+      deployments: write
+      issues: write
+      pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+      - name: Install Vercel CLI
+        run: npm install -g vercel@51.6.1
       - name: Deploy to Vercel Action
-        uses: BetaHuhn/deploy-to-vercel-action@v1
+        uses: gettruckup/deploy-to-vercel-action@v2
         with:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ github.token }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 ```
 
+The action runs the `vercel` CLI found on `PATH`, so pin the CLI version you want in a step before it.
+
+The `permissions` block is needed on repositories whose default `GITHUB_TOKEN` is read-only: the action creates GitHub deployments (`deployments: write`) and comments on and labels pull requests (`issues: write`, `pull-requests: write`).
+
 ### Versioning
 
-To always use the latest version of the Action add the `latest` tag to the action name like this:
+Use the `v2` tag to get the latest non-breaking v2 release:
 
 ```yml
-uses: BetaHuhn/deploy-to-vercel-action@latest
+uses: gettruckup/deploy-to-vercel-action@v2
 ```
 
-If you want to make sure that your Workflow doesn't suddenly break when a new major version is released, use the `v1` tag instead (recommended usage):
+`v1` and `latest` still point at the last Node release (v1). `latest` moves to v2 only after every consumer workflow has been validated on `@v2`.
 
-```yml
-uses: BetaHuhn/deploy-to-vercel-action@v1
-```
-
-With the `v1` tag you will always get the latest non-breaking version which will include potential bug fixes in the future. If you use a specific version, make sure to regularly check if a new version is available, or enable Dependabot.
+The action supports Linux runners (x64 and arm64) with the `node24` runtime.
 
 ## ⚙️ Action Inputs
 
@@ -76,7 +83,7 @@ Here are all the inputs [deploy-to-vercel-action](https://github.com/BetaHuhn/de
 
 | Key | Value | Required | Default |
 | ------------- | ------------- | ------------- | ------------- |
-| `GITHUB_TOKEN` | GitHub Token to use when creating deployment and comment (more info [below](#tokens)) | **Yes** | N/A |
+| `GITHUB_TOKEN` | GitHub Token to use when creating deployment and comment (more info [below](#tokens)) | **No** | `${{ github.token }}` |
 | `VERCEL_TOKEN` | Vercel Token to use with the Vercel CLI (more info [below](#tokens)) | **Yes** | N/A |
 | `VERCEL_ORG_ID` | Id of your Vercel Organisation (more info [below](#vercel-project)) | **Yes** | N/A |
 | `VERCEL_PROJECT_ID` | Id of your Vercel project (more info [below](#vercel-project)) | **Yes** | N/A |
@@ -96,6 +103,40 @@ Here are all the inputs [deploy-to-vercel-action](https://github.com/BetaHuhn/de
 | `WORKING_DIRECTORY` | Working directory for the Vercel CLI | **No** | N/A |
 | `FORCE` | Used to skip the build cache. | **No** | false
 | `PREBUILT` | Deploy a prebuilt Vercel Project. | **No** | false
+
+## 📤 Action Outputs
+
+| Key | Value |
+| ------------- | ------------- |
+| `PREVIEW_URL` | Main deployment URL (first alias, or the deployment URL) |
+| `DEPLOYMENT_URLS` | All assigned URLs as a JSON array |
+| `DEPLOYMENT_UNIQUE_URL` | The unique deployment URL on Vercel |
+| `DEPLOYMENT_ID` | The Vercel deployment id |
+| `DEPLOYMENT_INSPECTOR_URL` | The Vercel inspector URL |
+| `DEPLOYMENT_CREATED` | `true` if a Vercel deployment was created |
+| `COMMENT_CREATED` | `true` if a comment was created on the PR |
+
+## 🔁 What changed in v2
+
+v2 is a Rust rewrite with the same inputs, outputs and PR comments. Differences from v1:
+
+- Commits whose author has no GitHub account no longer crash the action.
+- The previous deploy comment is found on PRs with more than 30 comments.
+- `{USER}`, `{REPO}`, `{BRANCH}`, `{SHA}` and `{PR}` are replaced everywhere in a template, not only the first time.
+- Tag pushes keep the full tag name in `{BRANCH}` (v1 dropped the first character).
+- The `githubCommitRef` metadata sent to Vercel is the branch name (`main`), not the full ref (`refs/heads/main`).
+- GitHub deployment statuses say `Deploying to Vercel`, `Deployed to Vercel` or `Deployment to Vercel failed`.
+- A `.env` file in your repository is no longer loaded when running in GitHub Actions.
+- If commenting or labeling fails after a successful deploy, the GitHub deployment stays `success` and outputs are still set; the step still fails.
+- Aliases are assigned through the Vercel API in parallel; GitHub and Vercel API calls are retried on transient errors.
+- `GITHUB_TOKEN` defaults to the workflow's `github.token`.
+- A pull request whose fork was deleted now gets the "refusing to deploy" comment instead of crashing.
+- Blank entries in list inputs are ignored, and an empty `PR_LABELS` list skips the label call.
+- When GitHub returns a deployment without an id, the action warns and continues without a GitHub deployment.
+- Invalid inputs and unparseable Vercel CLI output produce clear `::error::` messages.
+- A `WORKING_DIRECTORY` that does not exist fails with a clear message before the Vercel CLI runs.
+- All alias domains are attempted even if one fails; the first failure (in input order) is reported.
+- Because `GITHUB_TOKEN` now has a default (`${{ github.token }}`), a token passed only as a plain `GITHUB_TOKEN` environment variable (instead of `with:`) is no longer used — pass it via `with:` or use `GH_PAT`, which still takes precedence.
 
 ## 🛠️ Configuration
 
@@ -201,7 +242,7 @@ jobs:
           repository: ${{ steps.script.outputs.repo }}
 
       - name: Deploy to Vercel Action
-        uses: BetaHuhn/deploy-to-vercel-action@develop
+        uses: gettruckup/deploy-to-vercel-action@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -237,7 +278,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Deploy to Vercel Action
-        uses: BetaHuhn/deploy-to-vercel-action@v1
+        uses: gettruckup/deploy-to-vercel-action@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -264,7 +305,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Deploy to Vercel Action
-        uses: BetaHuhn/deploy-to-vercel-action@v1
+        uses: gettruckup/deploy-to-vercel-action@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -292,7 +333,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Deploy to Vercel Action
-        uses: BetaHuhn/deploy-to-vercel-action@v1
+        uses: gettruckup/deploy-to-vercel-action@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -321,7 +362,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Deploy to Vercel Action
-        uses: BetaHuhn/deploy-to-vercel-action@v1
+        uses: gettruckup/deploy-to-vercel-action@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -358,7 +399,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Deploy to Vercel Action
-        uses: BetaHuhn/deploy-to-vercel-action@v1
+        uses: gettruckup/deploy-to-vercel-action@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -388,7 +429,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Deploy to Vercel Action
         id: vercel-deploy
-        uses: BetaHuhn/deploy-to-vercel-action@v1
+        uses: gettruckup/deploy-to-vercel-action@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -438,7 +479,7 @@ jobs:
         uses: actions/checkout@v2
       # maybe do something else first
       - name: Deploy to Vercel Action
-        uses: BetaHuhn/deploy-to-vercel-action@v1
+        uses: gettruckup/deploy-to-vercel-action@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -483,7 +524,7 @@ jobs:
           repository: ${{ steps.script.outputs.repo }}
 
       - name: Deploy to Vercel Action
-        uses: BetaHuhn/deploy-to-vercel-action@develop
+        uses: gettruckup/deploy-to-vercel-action@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -512,7 +553,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Deploy to Vercel Action
-        uses: BetaHuhn/deploy-to-vercel-action@v1
+        uses: gettruckup/deploy-to-vercel-action@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -527,13 +568,12 @@ If you have an idea for another use case, [create a discussion](https://github.c
 
 ## 💻 Development
 
-Issues and PRs are very welcome!
+The action is a Rust binary (`src/`) started by a small Node shim (`dist/index.js`).
 
-The actual source code of this Action is in the `src` folder.
-
-- run `yarn lint` or `npm run lint` to run eslint.
-- run `yarn start` or `npm run start` to run the Action locally.
-- run `yarn build` or `npm run build` to produce a production version of [deploy-to-vercel-action](https://github.com/BetaHuhn/deploy-to-vercel-action) in the `dist` folder.
+- `cargo test` runs unit tests, the CLI tests and the v1/v2 parity harness (needs Node 20+).
+- `node --test 'tests/shim/*.test.js'` tests the shim.
+- `node tests/golden/generate.js` regenerates the golden vectors from the v1 code (run `npm install --prefix tests/golden --no-save action-input-parser@1.2.38` first).
+- Releases: bump `version` in `Cargo.toml`, merge to `master`, then run the **Release** workflow with that version. It builds the musl binaries, creates a release commit with `dist/bin/`, tags `v<version>` and moves `v2`.
 
 ## ❔ About
 

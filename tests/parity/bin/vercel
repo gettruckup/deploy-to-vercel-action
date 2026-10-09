@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Fake Vercel CLI for the parity harness: logs argv + env, prints a deployment URL.
+set -euo pipefail
+{
+  printf 'cwd=%s\n' "$PWD"
+  printf 'VERCEL_ORG_ID=%s\n' "${VERCEL_ORG_ID-}"
+  printf 'VERCEL_PROJECT_ID=%s\n' "${VERCEL_PROJECT_ID-}"
+  for arg in "$@"; do
+    printf 'arg=%s\n' "${arg//$'\n'/\\n}"
+  done
+  printf 'end\n'
+} >> "${FAKE_VERCEL_LOG:?}"
+
+if [[ "${FAKE_VERCEL_FAIL-}" == "1" ]]; then
+  echo 'Error: Command "npm run build" exited with 1' >&2
+  exit 1
+fi
+
+if [[ "${2-}" == "alias" ]]; then
+  echo "> Success! https://${5-} now points to https://${4-}"
+  exit 0
+fi
+
+echo "Vercel CLI 51.6.1" >&2
+echo "https://proj-abc123.vercel.app"

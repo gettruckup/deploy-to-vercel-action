@@ -5,8 +5,9 @@ author: 'BetaHuhn'
 inputs:
   GITHUB_TOKEN:
     description: |
-      GitHub Token which will be used to authenticate with the GitHub API.
+      GitHub Token which will be used to authenticate with the GitHub API (default: the workflow's github.token).
     required: false
+    default: ${{ github.token }}
   VERCEL_TOKEN:
     description: |
       Vercel Token which will be used with the Vercel CLI.
@@ -97,9 +98,11 @@ outputs:
     description: 'Main deployment inspection url.'
   DEPLOYMENT_UNIQUE_URL:
     description: 'The unique deployment url on Vercel'
+  DEPLOYMENT_ID:
+    description: 'The Vercel deployment id.'
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'
 
 branding:

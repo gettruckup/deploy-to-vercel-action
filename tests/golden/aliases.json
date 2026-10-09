@@ -1,0 +1,218 @@
+{
+  "urlSafe": [
+    {
+      "input": "main",
+      "output": "main"
+    },
+    {
+      "input": "feature/login-form",
+      "output": "feature-login-form"
+    },
+    {
+      "input": "Feature_Branch~1",
+      "output": "Feature_Branch~1"
+    },
+    {
+      "input": "dots.and spaces",
+      "output": "dots-and-spaces"
+    },
+    {
+      "input": "ñandú",
+      "output": "-and-"
+    },
+    {
+      "input": "🚀",
+      "output": "--"
+    },
+    {
+      "input": "",
+      "output": ""
+    }
+  ],
+  "schema": [
+    {
+      "input": "example.com",
+      "add": "https://example.com",
+      "remove": "example.com"
+    },
+    {
+      "input": "https://example.com",
+      "add": "https://example.com",
+      "remove": "example.com"
+    },
+    {
+      "input": "http://example.com",
+      "add": "http://example.com",
+      "remove": "example.com"
+    },
+    {
+      "input": "HTTPS://example.com",
+      "add": "https://HTTPS://example.com",
+      "remove": "HTTPS://example.com"
+    },
+    {
+      "input": "ftp://example.com",
+      "add": "https://ftp://example.com",
+      "remove": "ftp://example.com"
+    }
+  ],
+  "preview": [
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "feature/login-form",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "pr{PR}.app.example.com",
+      "alias": "pr7.app.example.com",
+      "truncatedFrom": null
+    },
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "feature/login-form",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "{REPO}-{BRANCH}.vercel.app",
+      "alias": "repo-feature-login-form.vercel.app",
+      "truncatedFrom": null
+    },
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "feature/login-form",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "{USER}-{REPO}-{SHA}.vercel.app",
+      "alias": "octo-repo-abcdef0.vercel.app",
+      "truncatedFrom": null
+    },
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "feature/login-form",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "PR-{PR}.Example.COM",
+      "alias": "pr-7.example.com",
+      "truncatedFrom": null
+    },
+    {
+      "USER": "Octo_Org",
+      "REPOSITORY": "My.Repo",
+      "BRANCH": "Feature/ÑANDÚ 🚀",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "{USER}-{REPO}-{BRANCH}.vercel.app",
+      "alias": "octo_org-my-repo-feature--and----.vercel.app",
+      "truncatedFrom": null
+    },
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "feature/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "{BRANCH}.vercel.app",
+      "alias": "feature-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.vercel.app",
+      "truncatedFrom": null
+    },
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "feature/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "{BRANCH}.vercel.app",
+      "alias": "feature-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-c2d1e0.vercel.app",
+      "truncatedFrom": "feature-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "feature/this-is-a-very-long-branch-name-that-keeps-going-and-going",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "{REPO}-{BRANCH}.vercel.app",
+      "alias": "repo-feature-this-is-a-very-long-branch-name-that-keeps-b04a3f.vercel.app",
+      "truncatedFrom": "repo-feature-this-is-a-very-long-branch-name-that-keeps-going-and-going"
+    },
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "{BRANCH}.example.com",
+      "alias": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.example.com",
+      "truncatedFrom": null
+    },
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "feature/login-form",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "{BRANCH}.vercel.app.example.com",
+      "alias": "feature-login-form.vercel.app.example.com",
+      "truncatedFrom": null
+    },
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "https://{BRANCH}.vercel.app",
+      "alias": "https://yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy-8106ce.vercel.app",
+      "truncatedFrom": "https://yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+    }
+  ],
+  "domain": [
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "main",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "{BRANCH}.example.com",
+      "alias": "main.example.com"
+    },
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "feature/login-form",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "App.Example.com",
+      "alias": "app.example.com"
+    },
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "feature/login-form",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "{PR}.example.com",
+      "alias": "{pr}.example.com"
+    },
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "feature/login-form",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "{USER}-{REPO}-{SHA}.example.com",
+      "alias": "octo-repo-abcdef0.example.com"
+    },
+    {
+      "USER": "octo",
+      "REPOSITORY": "repo",
+      "BRANCH": "1.2.3",
+      "PR_NUMBER": "7",
+      "SHA": "abcdef0123456789",
+      "template": "{BRANCH}.example.com",
+      "alias": "1-2-3.example.com"
+    }
+  ]
+}

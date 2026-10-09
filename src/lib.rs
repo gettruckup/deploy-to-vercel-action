@@ -1,0 +1,12 @@
+//! deploy-to-vercel-action v2: the Rust implementation behind the node24 shim in `dist/index.js`.
+
+pub mod actions_io;
+pub mod aliases;
+pub mod comment;
+pub mod context;
+pub mod error;
+pub mod github;
+pub mod http;
+pub mod inputs;
+pub mod run;
+pub mod vercel;
