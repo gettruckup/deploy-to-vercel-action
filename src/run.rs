@@ -76,7 +76,9 @@ pub async fn run<G: GitHubApi, V: VercelApi, C: VercelCli>(
     };
 
     // F14: outputs are written before post-deploy work, which never flips the deployment to failure.
-    write_outputs(inputs, ctx, &deployed, io)?;
+    // A write failure must not leave the GitHub deployment stuck "pending", so it is collected,
+    // not returned early, and reported ahead of any step-8 errors.
+    let outputs = write_outputs(inputs, ctx, &deployed, io);
     let preview_url = deployed.urls[0].as_str();
     let (status, comment, labels) = tokio::join!(
         mark_succeeded(deps.github, io, deployment_id, preview_url),
@@ -90,7 +92,7 @@ pub async fn run<G: GitHubApi, V: VercelApi, C: VercelCli>(
         ),
         add_labels(inputs, ctx, deps.github, io),
     );
-    let errors: Vec<Error> = [status, comment, labels]
+    let errors: Vec<Error> = [outputs, status, comment, labels]
         .into_iter()
         .filter_map(|r| r.err())
         .collect();
@@ -437,6 +439,7 @@ mod tests {
     struct FakeVercel {
         calls: RefCell<Vec<String>>,
         fail_aliases: HashSet<String>,
+        fail_lookup: bool,
     }
 
     impl VercelApi for FakeVercel {
@@ -444,6 +447,9 @@ mod tests {
             self.calls
                 .borrow_mut()
                 .push(format!("get_deployment {host}"));
+            if self.fail_lookup {
+                return Err(Error::msg("lookup failed"));
+            }
             Ok(DeploymentInfo {
                 id: "dpl_1".into(),
                 inspector_url: "https://vercel.com/octo/repo/dpl1".into(),
@@ -533,6 +539,18 @@ mod tests {
                 log,
                 io,
             }
+        }
+
+        /// `GITHUB_OUTPUT` points into a directory that does not exist, so every output write fails.
+        fn unwritable_output() -> Self {
+            let mut harness = Self::new();
+            harness.output = harness._dir.path().join("missing-dir").join("output");
+            harness.io = Io::new(
+                Box::new(harness.log.clone()),
+                Some(harness.output.clone()),
+                Some(harness.env.clone()),
+            );
+            harness
         }
 
         fn outputs(&self) -> Vec<(String, String)> {
@@ -967,6 +985,90 @@ mod tests {
                 "add_labels failed"
             ]
         );
+    }
+
+    #[tokio::test]
+    async fn fork_refusal_comment_failure_fails_the_run() {
+        let mut ctx = test_pr_context();
+        ctx.is_fork = true;
+        let gh = FakeGitHub::failing(&["create_comment"]);
+        let (vercel, cli, h) = (FakeVercel::default(), FakeCli::ok(), Harness::new());
+        let failure = execute(&test_inputs(), &ctx, &gh, &vercel, &cli, &h)
+            .await
+            .unwrap_err();
+        assert_eq!(messages(failure), ["create_comment failed"]);
+        assert_eq!(gh.calls(), ["create_comment 7"]);
+        assert_eq!(cli.argv(), None);
+        assert!(h.outputs().is_empty());
+    }
+
+    #[tokio::test]
+    async fn pending_status_failure_sets_no_failure_status() {
+        let gh = FakeGitHub::failing(&["status_pending"]);
+        let (vercel, cli, h) = (FakeVercel::default(), FakeCli::ok(), Harness::new());
+        let failure = execute(&test_inputs(), &test_push_context(), &gh, &vercel, &cli, &h)
+            .await
+            .unwrap_err();
+        assert_eq!(messages(failure), ["status_pending failed"]);
+        assert!(!gh.calls().iter().any(|c| c.starts_with("status_failure")));
+        assert_eq!(cli.argv(), None);
+        assert!(h.outputs().is_empty());
+    }
+
+    #[tokio::test]
+    async fn lookup_failure_marks_deployment_failed() {
+        let vercel = FakeVercel {
+            fail_lookup: true,
+            ..FakeVercel::default()
+        };
+        let (gh, cli, h) = (FakeGitHub::default(), FakeCli::ok(), Harness::new());
+        let failure = execute(&test_inputs(), &test_push_context(), &gh, &vercel, &cli, &h)
+            .await
+            .unwrap_err();
+        assert_eq!(messages(failure), ["lookup failed"]);
+        assert!(gh.calls().contains(&format!("status_failure 42 {LOG}")));
+        assert!(h.outputs().is_empty());
+    }
+
+    #[tokio::test]
+    async fn unparseable_cli_output_marks_deployment_failed() {
+        let cli = FakeCli {
+            argv: RefCell::new(None),
+            result: Ok("Deployment queued\n".into()),
+        };
+        let (gh, vercel, h) = (FakeGitHub::default(), FakeVercel::default(), Harness::new());
+        let failure = execute(&test_inputs(), &test_push_context(), &gh, &vercel, &cli, &h)
+            .await
+            .unwrap_err();
+        assert_eq!(messages(failure), ["Could not parse deploymentUrl"]);
+        assert!(gh.calls().contains(&format!("status_failure 42 {LOG}")));
+        assert!(h.outputs().is_empty());
+    }
+
+    #[tokio::test]
+    async fn deployment_and_commit_failures_report_only_the_deployment_error() {
+        let gh = FakeGitHub::failing(&["create_deployment", "get_commit"]);
+        let (vercel, cli, h) = (FakeVercel::default(), FakeCli::ok(), Harness::new());
+        let failure = execute(&test_inputs(), &test_push_context(), &gh, &vercel, &cli, &h)
+            .await
+            .unwrap_err();
+        assert_eq!(messages(failure), ["create_deployment failed"]);
+        assert!(!gh.calls().iter().any(|c| c.starts_with("status_")));
+        assert_eq!(cli.argv(), None);
+    }
+
+    #[tokio::test]
+    async fn output_write_failure_still_marks_deployment_succeeded() {
+        let h = Harness::unwritable_output();
+        let (gh, vercel, cli) = (FakeGitHub::default(), FakeVercel::default(), FakeCli::ok());
+        let failure = execute(&test_inputs(), &test_push_context(), &gh, &vercel, &cli, &h)
+            .await
+            .unwrap_err();
+        let errors = messages(failure);
+        assert_eq!(errors.len(), 1, "{errors:?}");
+        let calls = gh.calls();
+        assert!(calls.iter().any(|c| c.starts_with("status_success 42")));
+        assert!(!calls.iter().any(|c| c.starts_with("status_failure")));
     }
 
     #[tokio::test]
