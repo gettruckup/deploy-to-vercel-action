@@ -5,5 +5,6 @@ pub mod aliases;
 pub mod comment;
 pub mod context;
 pub mod error;
+pub mod github;
 pub mod http;
 pub mod inputs;
