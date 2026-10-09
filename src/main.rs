@@ -69,7 +69,7 @@ async fn execute(env: &ProcessEnv, inputs: &Inputs, ctx: &RunContext, io: &Io) -
         http,
         &base_url("VERCEL_API_URL", "https://api.vercel.com"),
         &inputs.vercel_token,
-        team_param(non_empty_str(&inputs.vercel_scope), &inputs.vercel_org_id),
+        team_param(&inputs.vercel_org_id),
     );
     let cli = ProcessCli {
         program: "vercel".to_string(),

@@ -424,10 +424,12 @@ fn assert_dependency_order(order: &[String]) {
 /// Per-request checks on the Rust run: auth headers and the Vercel team parameter (spec §9.2 allows
 /// v1/v2 differences here, so these are asserted directly instead of being part of `Trace`).
 fn assert_auth_and_team(scenario: &Scenario, rust: &RawRun) {
+    // Last occurrence wins, like repeated `Command::env` calls.
     let env = |key: &str| {
         scenario
             .env
             .iter()
+            .rev()
             .find(|(k, _)| *k == key)
             .map(|(_, v)| v.as_str())
             .unwrap_or_default()
@@ -440,14 +442,9 @@ fn assert_auth_and_team(scenario: &Scenario, rust: &RawRun) {
             scenario.name
         );
     }
-    let scope = env("INPUT_VERCEL_SCOPE");
-    let expected = if scope.is_empty() {
-        ("teamId", env("INPUT_VERCEL_ORG_ID"))
-    } else if scope.starts_with("team_") {
-        ("teamId", scope)
-    } else {
-        ("slug", scope)
-    };
+    // REST team context comes from the project owner (VERCEL_ORG_ID); VERCEL_SCOPE is CLI-only.
+    let org_id = env("INPUT_VERCEL_ORG_ID");
+    let expected_team_id = org_id.starts_with("team_").then_some(org_id);
     for request in &rust.vercel_requests {
         assert_eq!(
             request.authorization.as_deref(),
@@ -456,14 +453,20 @@ fn assert_auth_and_team(scenario: &Scenario, rust: &RawRun) {
             scenario.name,
             request.line
         );
-        let found = request.query.iter().find(|(k, _)| k == expected.0);
+        let team_id = request.query.iter().find(|(k, _)| k == "teamId");
         assert_eq!(
-            found.map(|(_, v)| v.as_str()),
-            Some(expected.1),
-            "scenario {}: Vercel request `{}` has wrong `{}` (query {:?})",
+            team_id.map(|(_, v)| v.as_str()),
+            expected_team_id,
+            "scenario {}: Vercel request `{}` has wrong `teamId` (query {:?})",
             scenario.name,
             request.line,
-            expected.0,
+            request.query
+        );
+        assert!(
+            !request.query.iter().any(|(k, _)| k == "slug"),
+            "scenario {}: Vercel request `{}` must not send `slug` (query {:?})",
+            scenario.name,
+            request.line,
             request.query
         );
     }

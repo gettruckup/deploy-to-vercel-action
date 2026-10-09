@@ -375,3 +375,26 @@ async fn s13_invalid_boolean_input() {
         "::error::boolean input has to be one of `true | True | TRUE | false | False | FALSE`"
     ));
 }
+
+#[tokio::test(flavor = "multi_thread")]
+async fn s14_personal_account_scope() {
+    // A personal Vercel account: VERCEL_SCOPE is a username, VERCEL_ORG_ID is not a `team_` id.
+    // The CLI still gets --scope; the REST calls must use the personal context (no teamId/slug).
+    let scenario = push(
+        "s14",
+        "refs/heads/main",
+        vec![
+            var("INPUT_VERCEL_ORG_ID", "QmPersonalUser"),
+            var("INPUT_VERCEL_SCOPE", "jane"),
+            var("INPUT_ALIAS_DOMAINS", "jane.example.com"),
+        ],
+    );
+    let rust = diff(&scenario, |_| {}).await;
+    assert_eq!(rust.trace.exit_code, Some(0));
+    assert!(rust.trace.deploys[0].contains(&"--scope=jane".to_string()));
+    assert_eq!(rust.trace.deploy_env[0].org_id, "QmPersonalUser");
+    assert_eq!(
+        rust.trace.aliases,
+        BTreeSet::from(["jane.example.com".to_string()])
+    );
+}

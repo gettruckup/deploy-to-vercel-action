@@ -16,7 +16,6 @@ pub struct DeploymentInfo {
 pub enum TeamParam {
     Personal,
     TeamId(String),
-    Slug(String),
 }
 
 impl TeamParam {
@@ -24,18 +23,17 @@ impl TeamParam {
         match self {
             TeamParam::Personal => String::new(),
             TeamParam::TeamId(id) => format!("?teamId={}", encode_segment(id)),
-            TeamParam::Slug(slug) => format!("?slug={}", encode_segment(slug)),
         }
     }
 }
 
-/// `VERCEL_SCOPE` wins (team id or slug); otherwise a `team_` org id; otherwise a personal account.
-pub fn team_param(scope: Option<&str>, org_id: &str) -> TeamParam {
-    match scope.filter(|s| !s.is_empty()) {
-        Some(scope) if scope.starts_with("team_") => TeamParam::TeamId(scope.to_string()),
-        Some(scope) => TeamParam::Slug(scope.to_string()),
-        None if org_id.starts_with("team_") => TeamParam::TeamId(org_id.to_string()),
-        None => TeamParam::Personal,
+/// The project owner decides the REST team context: a `team_` org id, otherwise the personal account.
+/// `VERCEL_SCOPE` stays CLI-only: it may name a personal account, which Vercel's `slug` param rejects.
+pub fn team_param(org_id: &str) -> TeamParam {
+    if org_id.starts_with("team_") {
+        TeamParam::TeamId(org_id.to_string())
+    } else {
+        TeamParam::Personal
     }
 }
 
@@ -153,29 +151,17 @@ mod tests {
     }
 
     #[test]
-    fn team_param_resolution() {
-        assert_eq!(
-            team_param(Some("truckup-591e6e55"), "team_abc"),
-            TeamParam::Slug("truckup-591e6e55".into())
-        );
-        assert_eq!(
-            team_param(Some("team_xyz"), "team_abc"),
-            TeamParam::TeamId("team_xyz".into())
-        );
-        assert_eq!(
-            team_param(None, "team_abc"),
-            TeamParam::TeamId("team_abc".into())
-        );
-        assert_eq!(team_param(Some(""), "user_123"), TeamParam::Personal);
-        assert_eq!(team_param(None, "QmUserId"), TeamParam::Personal);
+    fn team_param_comes_from_org_id_only() {
+        assert_eq!(team_param("team_abc"), TeamParam::TeamId("team_abc".into()));
+        assert_eq!(team_param("QmUserId"), TeamParam::Personal);
+        assert_eq!(team_param(""), TeamParam::Personal);
     }
 
     #[tokio::test]
-    async fn get_deployment_by_host_with_slug() {
+    async fn personal_account_requests_carry_no_team_param() {
         let server = MockServer::start().await;
         Mock::given(method("GET"))
             .and(path("/v13/deployments/proj-abc.vercel.app"))
-            .and(query_param("slug", "truckup"))
             .and(header("authorization", "Bearer vercel-token"))
             .respond_with(
                 ResponseTemplate::new(200).set_body_json(
@@ -184,7 +170,7 @@ mod tests {
             )
             .mount(&server)
             .await;
-        let info = client(&server, TeamParam::Slug("truckup".into()))
+        let info = client(&server, team_param("QmUserId"))
             .get_deployment("proj-abc.vercel.app")
             .await
             .unwrap();
@@ -195,6 +181,8 @@ mod tests {
                 inspector_url: "https://vercel.com/i/1".into()
             }
         );
+        let requests = server.received_requests().await.unwrap();
+        assert_eq!(requests[0].url.query(), None);
     }
 
     #[tokio::test]
