@@ -42,6 +42,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    permissions:
+      contents: read
+      deployments: write
+      issues: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,6 +62,8 @@ jobs:
 ```
 
 The action runs the `vercel` CLI found on `PATH`, so pin the CLI version you want in a step before it.
+
+The `permissions` block is needed on repositories whose default `GITHUB_TOKEN` is read-only: the action creates GitHub deployments (`deployments: write`) and comments on and labels pull requests (`issues: write`, `pull-requests: write`).
 
 ### Versioning
 
