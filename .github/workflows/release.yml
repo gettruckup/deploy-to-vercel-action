@@ -1,57 +1,84 @@
-name: Release CI
+name: Release
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release without the leading v, e.g. 2.0.0 (must match Cargo.toml)'
+        required: true
 
 permissions:
   contents: write
-  issues: write
-  pull-requests: write
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: 12
-      - name: Cache node modules
-        uses: c-hive/gha-npm-cache@v1
-      - name: Install dependencies
-        run: npm ci
-      - name: Run lint command
-        run: npm run lint
   release:
-    needs: [lint]
     name: Build and release
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/checkout@v4
         with:
-          node-version: 12
-      - name: Cache node modules
-        uses: c-hive/gha-npm-cache@v1
-      - name: Install dependencies
-        run: npm ci
-      - name: Run build command
-        run: npm run build
-      - name: Release
-        run: npx semantic-release
+          ref: master
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Rust toolchain
+        run: rustup toolchain install
+      - name: Validate version
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_AUTHOR_NAME: 'BetaHuhn Bot'
-          GIT_AUTHOR_EMAIL: 'bot@mxis.ch'
-          GIT_COMMITTER_NAME: 'BetaHuhn Bot'
-          GIT_COMMITTER_EMAIL: 'bot@mxis.ch'
-          COMMIT_ASSETS: dist
+          VERSION: ${{ inputs.version }}
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::bad version $VERSION"; exit 1; }
+          crate=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+          test "$crate" = "$VERSION" || { echo "::error::Cargo.toml has $crate, not $VERSION"; exit 1; }
+          ! git rev-parse -q --verify "refs/tags/v$VERSION" || { echo "::error::tag v$VERSION exists"; exit 1; }
+      - name: Check
+        run: |
+          cargo fmt --check
+          cargo clippy --all-targets --locked -- -D warnings
+          cargo test --locked
+          node --test 'tests/shim/*.test.js'
+      - name: Install cargo-zigbuild
+        run: |
+          python3 -m venv "$RUNNER_TEMP/zigbuild"
+          "$RUNNER_TEMP/zigbuild/bin/pip" install cargo-zigbuild ziglang
+          echo "$RUNNER_TEMP/zigbuild/bin" >> "$GITHUB_PATH"
+      - name: Build
+        run: cargo zigbuild --release --locked --target x86_64-unknown-linux-musl --target aarch64-unknown-linux-musl
+      - name: Assemble dist/bin
+        run: |
+          mkdir -p dist/bin
+          for target in x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
+            cp "target/$target/release/deploy-to-vercel" "dist/bin/deploy-to-vercel-$target"
+            chmod 755 "dist/bin/deploy-to-vercel-$target"
+          done
+      - name: Smoke-test the x86_64 binary through the shim
+        run: |
+          set +e
+          out=$(env -i PATH=/usr/bin:/bin "$(command -v node)" dist/index.js)
+          code=$?
+          set -e
+          echo "$out"
+          test "$code" -eq 1
+          grep -F '::error::Input `GH_PAT,GITHUB_TOKEN` is required but was not provided.' <<<"$out"
+      - name: Create release commit and tags
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          major="v${VERSION%%.*}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout --detach
+          git add -f dist/bin
+          git commit -m "Release v$VERSION"
+          git tag "v$VERSION"
+          git tag -f "$major"
+          git push origin "v$VERSION"
+          git push -f origin "$major"
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: gh release create "v$VERSION" dist/bin/* --title "v$VERSION" --generate-notes

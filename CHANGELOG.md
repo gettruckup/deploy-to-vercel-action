@@ -1,3 +1,7 @@
+## [v2.0.0] - Unreleased
+
+Rust rewrite behind a `node24` shim; inputs, outputs and PR comments are unchanged. See "What changed in v2" in the README for the behavior fixes.
+
 ## [v1.10.0] - 2024-05-05
 
 [Release notes](https://github.com/betahuhn/deploy-to-vercel-action/releases/tag/v1.10.0) · [Compare](https://github.com/betahuhn/deploy-to-vercel-action/compare/v1.9.12...v1.10.0) · [Tag](https://github.com/betahuhn/deploy-to-vercel-action/tree/v1.10.0) · Archive ([zip](https://github.com/betahuhn/deploy-to-vercel-action/archive/v1.10.0.zip) · [tar.gz](https://github.com/betahuhn/deploy-to-vercel-action/archive/v1.10.0.tar.gz))

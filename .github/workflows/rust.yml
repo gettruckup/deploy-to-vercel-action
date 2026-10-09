@@ -1,0 +1,63 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Rust toolchain
+        run: rustup toolchain install
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+      - name: Format
+        run: cargo fmt --check
+      - name: Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
+      - name: Test
+        run: cargo test --locked
+      - name: TLS smoke test
+        run: cargo test --locked --lib -- --ignored tls_smoke
+      - name: Shim tests
+        run: node --test 'tests/shim/*.test.js'
+
+  build:
+    name: Build musl binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        run: rustup toolchain install
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+      - name: Install cargo-zigbuild
+        run: |
+          python3 -m venv "$RUNNER_TEMP/zigbuild"
+          "$RUNNER_TEMP/zigbuild/bin/pip" install cargo-zigbuild ziglang
+          echo "$RUNNER_TEMP/zigbuild/bin" >> "$GITHUB_PATH"
+      - name: Build
+        run: cargo zigbuild --release --locked --target x86_64-unknown-linux-musl --target aarch64-unknown-linux-musl
+      - name: Smoke-test the x86_64 binary
+        run: |
+          set +e
+          out=$(env -i target/x86_64-unknown-linux-musl/release/deploy-to-vercel)
+          code=$?
+          set -e
+          echo "$out"
+          test "$code" -eq 1
+          grep -F '::error::Input `GH_PAT,GITHUB_TOKEN` is required but was not provided.' <<<"$out"
+          file target/x86_64-unknown-linux-musl/release/deploy-to-vercel | grep -E 'static(ally|-pie) linked'
