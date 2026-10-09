@@ -6,6 +6,9 @@ const path = require('path')
 const { spawnSync } = require('child_process')
 
 const VERSION = '48.0.0'
+// A cache key unique to this run attempt makes every CI run exercise install, save and restore,
+// and keeps concurrent runs from racing for the same cache reservation.
+process.env.ImageOS = `${ process.env.ImageOS || process.platform }-cache-smoke-${ process.env.GITHUB_RUN_ID }-${ process.env.GITHUB_RUN_ATTEMPT }`
 const { ensureVercelCli, installFolder } = require(path.join(process.env.GITHUB_WORKSPACE, 'dist', 'cli-install.cjs'))
 
 const captureStdout = async (fn) => {
@@ -33,7 +36,8 @@ const run = async () => {
 	fs.rmSync(folder, { recursive: true, force: true })
 	const first = await captureStdout(() => ensureVercelCli(VERSION))
 	assertVersion(first.binDir)
-	if (!/(Installed|Restored) Vercel CLI 48\.0\.0/.test(first.output)) throw new Error('first call neither installed nor restored the CLI')
+	if (!first.output.includes(`Installed Vercel CLI ${ VERSION } with npm`)) throw new Error('first call did not install the CLI with npm')
+	if (!first.output.includes(`Saved Vercel CLI ${ VERSION } to cache`)) throw new Error('first call did not save the CLI to cache')
 
 	fs.rmSync(folder, { recursive: true, force: true })
 	const second = await captureStdout(() => ensureVercelCli(VERSION))
