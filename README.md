@@ -123,6 +123,13 @@ v2 is a Rust rewrite with the same inputs, outputs and PR comments. Differences 
 - If commenting or labeling fails after a successful deploy, the GitHub deployment stays `success` and outputs are still set; the step still fails.
 - Aliases are assigned through the Vercel API in parallel; GitHub and Vercel API calls are retried on transient errors.
 - `GITHUB_TOKEN` defaults to the workflow's `github.token`.
+- A pull request whose fork was deleted now gets the "refusing to deploy" comment instead of crashing.
+- Blank entries in list inputs are ignored, and an empty `PR_LABELS` list skips the label call.
+- When GitHub returns a deployment without an id, the action warns and continues without a GitHub deployment.
+- Invalid inputs and unparseable Vercel CLI output produce clear `::error::` messages.
+- A `WORKING_DIRECTORY` that does not exist fails with a clear message before the Vercel CLI runs.
+- All alias domains are attempted even if one fails; the first failure (in input order) is reported.
+- Because `GITHUB_TOKEN` now has a default (`${{ github.token }}`), a token passed only as a plain `GITHUB_TOKEN` environment variable (instead of `with:`) is no longer used — pass it via `with:` or use `GH_PAT`, which still takes precedence.
 
 ## 🛠️ Configuration
 
