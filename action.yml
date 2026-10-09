@@ -84,6 +84,12 @@ inputs:
     description: |
       Used to skip the build cache.
     required: false
+  VERCEL_CLI_VERSION:
+    description: |
+      Vercel CLI version the action installs and caches (exact, e.g. 48.0.0).
+      Set to false to use the vercel CLI already on PATH (default: 48.0.0).
+    required: false
+    default: '48.0.0'
 
 outputs:
   PREVIEW_URL:
