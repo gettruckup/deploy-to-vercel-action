@@ -33,8 +33,27 @@ jobs:
         run: cargo test --locked
       - name: TLS smoke test
         run: cargo test --locked --lib -- --ignored tls_smoke
-      - name: Shim tests
+
+  launcher:
+    name: Launcher
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install launcher dependencies
+        run: npm ci --prefix launcher
+      - name: Build cli-install bundle
+        run: npm run build --prefix launcher
+      - name: Launcher tests
         run: node --test 'tests/shim/*.test.js'
+      - name: Real-cache smoke test
+        uses: ./tests/cache-smoke
 
   build:
     name: Build musl binaries

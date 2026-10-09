@@ -6,6 +6,10 @@ on:
       version:
         description: 'Version to release without the leading v, e.g. 2.0.0 (must match Cargo.toml)'
         required: true
+      move_major_tag:
+        description: 'Also move the major tag (e.g. v2) to this release; false to canary the release first'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -46,6 +50,7 @@ jobs:
           cargo fmt --check
           cargo clippy --all-targets --locked -- -D warnings
           cargo test --locked
+          npm ci --prefix launcher
           node --test 'tests/shim/*.test.js'
       - name: Install cargo-zigbuild
         run: |
@@ -61,10 +66,14 @@ jobs:
             cp "target/$target/release/deploy-to-vercel" "dist/bin/deploy-to-vercel-$target"
             chmod 755 "dist/bin/deploy-to-vercel-$target"
           done
+      - name: Build cli-install bundle
+        run: |
+          npm run build --prefix launcher
+          node -e 'const m = require("./dist/cli-install.cjs"); if (typeof m.ensureVercelCli !== "function") process.exit(1)'
       - name: Smoke-test the x86_64 binary through the shim
         run: |
           set +e
-          out=$(env -i PATH=/usr/bin:/bin "$(command -v node)" dist/index.js)
+          out=$(env -i PATH=/usr/bin:/bin INPUT_VERCEL_CLI_VERSION=false "$(command -v node)" dist/index.js)
           code=$?
           set -e
           # Print without letting the runner execute the binary's workflow commands.
@@ -74,20 +83,25 @@ jobs:
       - name: Create release commit and tags
         env:
           VERSION: ${{ inputs.version }}
+          MOVE_MAJOR: ${{ inputs.move_major_tag }}
           GH_TOKEN: ${{ github.token }}
         run: |
           major="v${VERSION%%.*}"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git checkout --detach
-          git add -f dist/bin
+          git add -f dist/bin dist/cli-install.cjs
           git commit -m "Release v$VERSION"
           git tag "v$VERSION"
-          git tag -f "$major"
-          # Checkout persisted no credential, so authenticate only these two pushes.
+          # Checkout persisted no credential, so authenticate only these pushes.
           remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push "$remote" "refs/tags/v$VERSION:refs/tags/v$VERSION"
-          git push "$remote" "+refs/tags/$major:refs/tags/$major"
+          if [ "$MOVE_MAJOR" = "true" ]; then
+            git tag -f "$major"
+            git push "$remote" "+refs/tags/$major:refs/tags/$major"
+          else
+            echo "Leaving $major where it is (move_major_tag=false)"
+          fi
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}

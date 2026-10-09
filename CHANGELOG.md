@@ -1,4 +1,8 @@
-## [v2.0.0] - Unreleased
+## [v2.1.0] - Unreleased
+
+The action installs and caches the Vercel CLI itself (new input `VERCEL_CLI_VERSION`, default `48.0.0`; `false` keeps using the CLI on `PATH`). See "What changed in v2.1.0" in the README.
+
+## [v2.0.0] - 2026-10-09
 
 Rust rewrite behind a `node24` shim; inputs, outputs and PR comments are unchanged. See "What changed in v2" in the README for the behavior fixes.
 

@@ -1,0 +1,14 @@
+{
+	"name": "deploy-to-vercel-action-launcher",
+	"private": true,
+	"description": "Vercel CLI install/cache module bundled into dist/cli-install.cjs at release time",
+	"scripts": {
+		"build": "esbuild cli-install.mjs --bundle --platform=node --target=node24 --format=cjs --minify --outfile=../dist/cli-install.cjs"
+	},
+	"dependencies": {
+		"@actions/cache": "6.3.0"
+	},
+	"devDependencies": {
+		"esbuild": "0.28.2"
+	}
+}
