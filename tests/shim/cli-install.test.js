@@ -19,6 +19,8 @@ const fakeDeps = (options = {}) => {
 	const files = new Set(options.files || [])
 	const calls = []
 	const logs = []
+	const restoreOptions = []
+	const npmEnvs = []
 	let clock = 0
 	const deps = {
 		env: options.env || ENV,
@@ -32,8 +34,9 @@ const fakeDeps = (options = {}) => {
 		},
 		cache: {
 			isFeatureAvailable: () => options.cacheAvailable !== false,
-			restoreCache: async (paths, key) => {
+			restoreCache: async (paths, key, restoreKeys, downloadOptions) => {
 				calls.push([ 'restore', paths, key ])
+				restoreOptions.push(downloadOptions)
 				if (options.restoreThrows) throw new Error(options.restoreThrows)
 				if (options.cacheHit) {
 					if (!options.hitWithoutBinary) files.add(CLI)
@@ -47,8 +50,9 @@ const fakeDeps = (options = {}) => {
 				return options.saveResult === undefined ? 42 : options.saveResult
 			}
 		},
-		spawnSync: (cmd, args) => {
+		spawnSync: (cmd, args, spawnOptions) => {
 			calls.push([ cmd, ...args ])
+			if (cmd === 'npm') npmEnvs.push(spawnOptions.env)
 			if (cmd === 'node') {
 				return options.nodeMissing
 					? { error: Object.assign(new Error('spawnSync node ENOENT'), { code: 'ENOENT' }) }
@@ -60,7 +64,7 @@ const fakeDeps = (options = {}) => {
 			return { status: 0, stdout: '', stderr: '' }
 		}
 	}
-	return { deps, calls, logs }
+	return { deps, calls, logs, restoreOptions, npmEnvs }
 }
 
 test('install folder and cache key follow the spec', async () => {
@@ -165,4 +169,32 @@ test('cache key falls back to nodeunknown', async () => {
 	const { deps, calls } = fakeDeps({ nodeMissing: true, cacheHit: true })
 	await ensureVercelCli('48.0.0', deps)
 	assert.deepStrictEqual(calls[1], [ 'restore', [ FOLDER ], KEY.replace('-node22', '-nodeunknown') ])
+})
+
+test('cache restore caps a stalled download at two minutes', async () => {
+	const { ensureVercelCli } = await load()
+	const { deps, restoreOptions } = fakeDeps({ cacheHit: true })
+	await ensureVercelCli('48.0.0', deps)
+	assert.deepStrictEqual(restoreOptions, [ { segmentTimeoutInMs: 120000 } ])
+})
+
+test('npm runs without the action credentials in its environment', async () => {
+	const { ensureVercelCli } = await load()
+	const env = {
+		...ENV,
+		PATH: '/usr/bin',
+		HOME: '/home/runner',
+		INPUT_VERCEL_TOKEN: 'vercel-secret',
+		INPUT_GITHUB_TOKEN: 'gh-secret',
+		ACTIONS_RUNTIME_TOKEN: 'runtime-secret',
+		ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'oidc-secret',
+		ACTIONS_ID_TOKEN_REQUEST_URL: 'https://oidc.example',
+		GITHUB_TOKEN: 'gh-env-secret',
+		GH_TOKEN: 'gh-cli-secret',
+		GH_PAT: 'pat-secret',
+		VERCEL_TOKEN: 'vercel-env-secret'
+	}
+	const { deps, npmEnvs } = fakeDeps({ env, cacheAvailable: false })
+	await ensureVercelCli('48.0.0', deps)
+	assert.deepStrictEqual(npmEnvs, [ { ...ENV, PATH: '/usr/bin', HOME: '/home/runner' } ])
 })

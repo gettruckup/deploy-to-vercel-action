@@ -39,6 +39,14 @@ const nodeMajorOnPath = (spawnSync) => {
 
 const elapsed = (startedAt, now) => ((now() - startedAt) / 1000).toFixed(1)
 
+// A stalled cache download must not hold a deploy for the library's 10-minute default; npm takes ~20s.
+const RESTORE_SEGMENT_TIMEOUT_MS = 120000
+
+// npm and its dependencies' install scripts never need the action's credentials.
+const CREDENTIAL_ENV = /^(INPUT_|ACTIONS_)|^(GITHUB_TOKEN|GH_TOKEN|GH_PAT|VERCEL_TOKEN)$/
+
+export const npmEnv = (env) => Object.fromEntries(Object.entries(env).filter(([ key ]) => !CREDENTIAL_ENV.test(key)))
+
 export const ensureVercelCli = async (version, deps = defaultDeps) => {
 	const { cache, spawnSync, existsSync, log, env, now } = deps
 	const folder = installFolder(version, env)
@@ -56,7 +64,7 @@ export const ensureVercelCli = async (version, deps = defaultDeps) => {
 		if (cacheAvailable) {
 			const startedAt = now()
 			try {
-				const hit = await cache.restoreCache([ folder ], key)
+				const hit = await cache.restoreCache([ folder ], key, undefined, { segmentTimeoutInMs: RESTORE_SEGMENT_TIMEOUT_MS })
 				if (hit && existsSync(cli)) {
 					log.info(`Restored Vercel CLI ${ version } from cache in ${ elapsed(startedAt, now) }s`)
 					return binDir
@@ -68,7 +76,7 @@ export const ensureVercelCli = async (version, deps = defaultDeps) => {
 
 		const startedAt = now()
 		const args = [ 'install', '--global', '--prefix', folder, `vercel@${ version }`, '--no-audit', '--no-fund', '--loglevel=error' ]
-		const result = spawnSync('npm', args, { encoding: 'utf8', env })
+		const result = spawnSync('npm', args, { encoding: 'utf8', env: npmEnv(env) })
 		if (result.error) {
 			if (result.error.code === 'ENOENT') throw new Error('Vercel CLI install needs npm on PATH (or set VERCEL_CLI_VERSION: false)')
 			throw new Error(`Could not run npm: ${ result.error.message }`)

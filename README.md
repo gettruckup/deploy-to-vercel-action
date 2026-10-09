@@ -59,7 +59,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 ```
 
-The action installs Vercel CLI `48.0.0` itself and caches it between runs. Set `VERCEL_CLI_VERSION` to pin another exact version, or to `false` to use a `vercel` CLI you install yourself.
+The action installs Vercel CLI `48.0.0` itself and caches it between runs. Set `VERCEL_CLI_VERSION` to pin another exact version, or to `false` to use a `vercel` CLI you install yourself. The installed CLI is only on the action's own `PATH`, so keep your own install step if later steps run `vercel` themselves; on self-hosted runners, `node` and `npm` must be on `PATH`.
 
 The `permissions` block is needed on repositories whose default `GITHUB_TOKEN` is read-only: the action creates GitHub deployments (`deployments: write`) and comments on and labels pull requests (`issues: write`, `pull-requests: write`).
 
@@ -117,7 +117,7 @@ Here are all the inputs [deploy-to-vercel-action](https://github.com/BetaHuhn/de
 
 ## 🆕 What changed in v2.1.0
 
-- The action installs the Vercel CLI itself (default `48.0.0`) and caches it with GitHub's cache, so a separate "Install Vercel CLI" step is no longer needed. A cache hit takes a couple of seconds instead of the ~15–20 s an `npm install -g vercel` takes.
+- The action installs the Vercel CLI itself (default `48.0.0`) and caches it with GitHub's cache, so a separate "Install Vercel CLI" step is no longer needed (unless later steps run `vercel` themselves: the action's CLI is only on its own `PATH`). A cache hit takes a couple of seconds instead of the ~15–20 s an `npm install -g vercel` takes.
 - If your workflow installs a different CLI version, the action now uses its own `48.0.0` instead: set `VERCEL_CLI_VERSION` to your version, or to `false` to keep using the CLI on `PATH`.
 - Only exact versions are accepted (`48.0.0`); `latest` or ranges fail with a clear error.
 
