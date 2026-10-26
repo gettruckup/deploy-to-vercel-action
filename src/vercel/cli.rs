@@ -58,7 +58,7 @@ pub fn commit_meta(commit: &CommitInfo, ctx: &RunContext) -> Vec<String> {
     } else {
         commit.message.clone()
     };
-    vec![
+    let mut meta = vec![
         format!("githubCommitAuthorName={}", commit.author_name),
         format!(
             "githubCommitAuthorLogin={}",
@@ -72,7 +72,12 @@ pub fn commit_meta(commit: &CommitInfo, ctx: &RunContext) -> Vec<String> {
         format!("githubOrg={}", ctx.user),
         format!("githubRepo={}", ctx.repository),
         "githubDeployment=1".to_string(),
-    ]
+    ];
+    // Lets cleanup find every deployment a PR produced via `meta-githubPrId=<n>`.
+    if let Some(pr_number) = &ctx.pr_number {
+        meta.push(format!("githubPrId={pr_number}"));
+    }
+    meta
 }
 
 /// JS `message.split(/\r?\n/)[0]`.
@@ -190,7 +195,7 @@ async fn pump<R: AsyncRead + Unpin>(reader: R, io: &Io) -> std::io::Result<Strin
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::context::test_push_context;
+    use crate::context::{test_pr_context, test_push_context};
 
     #[derive(serde::Deserialize)]
     struct StdoutCase {
@@ -276,6 +281,17 @@ mod tests {
                 "githubDeployment=1",
             ]
         );
+    }
+
+    #[test]
+    fn commit_meta_tags_pr_deployments_with_the_pr_number() {
+        let commit = CommitInfo {
+            author_name: "Jane Doe".into(),
+            author_login: Some("jane".into()),
+            message: "feat: subject".into(),
+        };
+        let meta = commit_meta(&commit, &test_pr_context());
+        assert_eq!(meta.last().map(String::as_str), Some("githubPrId=7"));
     }
 
     #[test]
