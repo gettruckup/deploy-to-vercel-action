@@ -383,9 +383,14 @@ fn apply_common_fixes(trace: &mut Trace, scenario: &Scenario) {
             status["description"] = json!(description);
         }
     }
+    // Same conversion as `context::ci`: a string number is sent as-is, not JSON-quoted.
     let pr_number = matches!(scenario.event_name, "pull_request" | "pull_request_target")
-        .then(|| scenario.payload.get("number").map(Value::to_string))
-        .flatten();
+        .then(|| scenario.payload.get("number"))
+        .flatten()
+        .map(|number| match number {
+            Value::String(s) => s.clone(),
+            other => other.to_string(),
+        });
     for argv in &mut trace.deploys {
         for arg in argv.iter_mut() {
             if let Some(git_ref) = arg.strip_prefix("githubCommitRef=") {
