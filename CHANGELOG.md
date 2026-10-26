@@ -1,4 +1,8 @@
-## [v2.1.0] - Unreleased
+## [v2.2.0] - Unreleased
+
+PR deployments carry a `githubPrId` meta field with the PR number, so a PR's deployments can be found with `meta-githubPrId=<n>`. See "What changed in v2.2.0" in the README.
+
+## [v2.1.0] - 2026-10-09
 
 The action installs and caches the Vercel CLI itself (new input `VERCEL_CLI_VERSION`, default `48.0.0`; `false` keeps using the CLI on `PATH`). See "What changed in v2.1.0" in the README.
 

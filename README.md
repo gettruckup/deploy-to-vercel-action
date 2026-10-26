@@ -115,6 +115,11 @@ Here are all the inputs [deploy-to-vercel-action](https://github.com/BetaHuhn/de
 | `DEPLOYMENT_CREATED` | `true` if a Vercel deployment was created |
 | `COMMENT_CREATED` | `true` if a comment was created on the PR |
 
+## 🆕 What changed in v2.2.0
+
+- PR deployments carry a `githubPrId` meta field with the PR number, alongside the existing `githubCommit*` fields. `GET /v6/deployments?meta-githubPrId=<n>` then finds every deployment a PR produced, for example to delete them when it closes; looking them up by `githubCommitRef` can also match other PRs that reused the branch name.
+- Push deployments are unchanged, and `ATTACH_COMMIT_METADATA: false` leaves the field out too.
+
 ## 🆕 What changed in v2.1.0
 
 - The action installs the Vercel CLI itself (default `48.0.0`) and caches it with GitHub's cache, so a separate "Install Vercel CLI" step is no longer needed (unless later steps run `vercel` themselves: the action's CLI is only on its own `PATH`). A cache hit takes a couple of seconds instead of the ~15–20 s an `npm install -g vercel` takes.

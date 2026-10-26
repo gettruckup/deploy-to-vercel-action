@@ -369,8 +369,9 @@ pub async fn run(implementation: Impl, scenario: &Scenario) -> RawRun {
     }
 }
 
-/// Approved fixes that apply to every scenario: F8 (status descriptions) and F11 (githubCommitRef).
-fn apply_common_fixes(trace: &mut Trace) {
+/// Approved fixes that apply to every scenario: F8 (status descriptions), F11 (githubCommitRef)
+/// and the `githubPrId` meta v2.2.0 adds to PR deploys.
+fn apply_common_fixes(trace: &mut Trace, scenario: &Scenario) {
     if let Some(statuses) = trace.github.get_mut(STATUSES) {
         for status in statuses {
             let description = match status["state"].as_str() {
@@ -382,6 +383,9 @@ fn apply_common_fixes(trace: &mut Trace) {
             status["description"] = json!(description);
         }
     }
+    let pr_number = matches!(scenario.event_name, "pull_request" | "pull_request_target")
+        .then(|| scenario.payload.get("number").map(Value::to_string))
+        .flatten();
     for argv in &mut trace.deploys {
         for arg in argv.iter_mut() {
             if let Some(git_ref) = arg.strip_prefix("githubCommitRef=") {
@@ -391,6 +395,12 @@ fn apply_common_fixes(trace: &mut Trace) {
                     .unwrap_or(git_ref);
                 *arg = format!("githubCommitRef={name}");
             }
+        }
+        if let Some(pr_number) = &pr_number
+            && let Some(i) = argv.iter().position(|arg| arg == "githubDeployment=1")
+        {
+            let meta = ["--meta".to_string(), format!("githubPrId={pr_number}")];
+            argv.splice(i + 1..i + 1, meta);
         }
     }
 }
@@ -477,7 +487,7 @@ pub async fn diff(scenario: &Scenario, adjust: impl FnOnce(&mut Trace)) -> RawRu
     let legacy = run(Impl::Legacy, scenario).await;
     let rust = run(Impl::Rust, scenario).await;
     let mut expected = legacy.trace.clone();
-    apply_common_fixes(&mut expected);
+    apply_common_fixes(&mut expected, scenario);
     adjust(&mut expected);
     assert_dependency_order(&rust.github_order);
     assert_auth_and_team(scenario, &rust);
